@@ -1,13 +1,13 @@
 {
   "files": {
-    "main.css": "/INSPIRE_CLUB_UEC/static/css/main.13c46074.css",
-    "main.js": "/INSPIRE_CLUB_UEC/static/js/main.580a3ad5.js",
+    "main.css": "/INSPIRE_CLUB_UEC/static/css/main.9e511596.css",
+    "main.js": "/INSPIRE_CLUB_UEC/static/js/main.45b616db.js",
     "index.html": "/INSPIRE_CLUB_UEC/index.html",
-    "main.13c46074.css.map": "/INSPIRE_CLUB_UEC/static/css/main.13c46074.css.map",
-    "main.580a3ad5.js.map": "/INSPIRE_CLUB_UEC/static/js/main.580a3ad5.js.map"
+    "main.9e511596.css.map": "/INSPIRE_CLUB_UEC/static/css/main.9e511596.css.map",
+    "main.45b616db.js.map": "/INSPIRE_CLUB_UEC/static/js/main.45b616db.js.map"
   },
   "entrypoints": [
-    "static/css/main.13c46074.css",
-    "static/js/main.580a3ad5.js"
+    "static/css/main.9e511596.css",
+    "static/js/main.45b616db.js"
   ]
 }
