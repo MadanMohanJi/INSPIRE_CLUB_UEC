@@ -1,15 +1,15 @@
 {
   "files": {
-    "main.css": "/0701ee231055-png/INSPIRE_CLUB_UEC.git/static/css/main.e6c13ad2.css",
-    "main.js": "/0701ee231055-png/INSPIRE_CLUB_UEC.git/static/js/main.20d2bc07.js",
-    "static/js/453.e72960b2.chunk.js": "/0701ee231055-png/INSPIRE_CLUB_UEC.git/static/js/453.e72960b2.chunk.js",
-    "index.html": "/0701ee231055-png/INSPIRE_CLUB_UEC.git/index.html",
-    "main.e6c13ad2.css.map": "/0701ee231055-png/INSPIRE_CLUB_UEC.git/static/css/main.e6c13ad2.css.map",
-    "main.20d2bc07.js.map": "/0701ee231055-png/INSPIRE_CLUB_UEC.git/static/js/main.20d2bc07.js.map",
-    "453.e72960b2.chunk.js.map": "/0701ee231055-png/INSPIRE_CLUB_UEC.git/static/js/453.e72960b2.chunk.js.map"
+    "main.css": "/INSPIRE_CLUB_UEC/static/css/main.e6c13ad2.css",
+    "main.js": "/INSPIRE_CLUB_UEC/static/js/main.7eb56496.js",
+    "static/js/453.e72960b2.chunk.js": "/INSPIRE_CLUB_UEC/static/js/453.e72960b2.chunk.js",
+    "index.html": "/INSPIRE_CLUB_UEC/index.html",
+    "main.e6c13ad2.css.map": "/INSPIRE_CLUB_UEC/static/css/main.e6c13ad2.css.map",
+    "main.7eb56496.js.map": "/INSPIRE_CLUB_UEC/static/js/main.7eb56496.js.map",
+    "453.e72960b2.chunk.js.map": "/INSPIRE_CLUB_UEC/static/js/453.e72960b2.chunk.js.map"
   },
   "entrypoints": [
     "static/css/main.e6c13ad2.css",
-    "static/js/main.20d2bc07.js"
+    "static/js/main.7eb56496.js"
   ]
 }
