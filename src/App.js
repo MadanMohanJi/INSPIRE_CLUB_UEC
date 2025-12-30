@@ -4,37 +4,444 @@ import {
   Video, 
   Calendar, 
   Users, 
-  ChevronRight, 
-  Download, 
-  Youtube, 
   Menu, 
   X, 
-  GraduationCap, 
-  Image as ImageIcon,
-  Clock,
-  MapPin,
-  Mail,
-  Instagram,
-  Linkedin,
-  Lock,
-  LogOut,
-  Plus,
-  Trash2,
-  FileText,
-  Heart,
-  Zap,
-  Globe,
+  Clock, 
+  MapPin, 
+  Mail, 
+  Instagram, 
+  Linkedin, 
+  Lock, 
+  LogOut, 
+  Plus, 
+  Trash2, 
+  FileText, 
+  Zap, 
+  Globe, 
+  FolderPlus, 
+  Camera, 
+  Landmark, 
+  Award, 
+  Lightbulb, 
+  Sparkles, 
+  Quote, 
+  ArrowRight,
   Book,
-  FolderPlus,
-  Camera,
-  Landmark,
-  Star,
-  Award,
-  Lightbulb,
-  Sparkles,
-  Quote
+  UserCircle,
+  Heart,
+  Download,
+  Youtube,
+  Cpu,
+  Code,
+  Brain,
+  HeartHandshake,
+  Sun,
+  Moon, 
+  Smile,
+  GraduationCap,
+  History,
+  Link as LinkIcon,
+  ExternalLink,
+  Image as ImageIcon,
+  Palette // Added Palette icon for Theme Editor
 } from 'lucide-react';
 
+// --- FIREBASE IMPORTS ---
+import { initializeApp } from "firebase/app";
+import { 
+  getAuth, 
+  signInAnonymously, 
+  signInWithEmailAndPassword, 
+  signOut, 
+  onAuthStateChanged 
+} from "firebase/auth";
+import { getFirestore, doc, onSnapshot, setDoc } from "firebase/firestore";
+
+// --- FIREBASE CONFIGURATION ---
+const firebaseConfig = {
+  apiKey: "AIzaSyBhMLyPLJ8s0P56uXlIqIFcbjvL3Am5TJg",
+  authDomain: "flutter-ai-playground-452d7.firebaseapp.com",
+  projectId: "flutter-ai-playground-452d7",
+  storageBucket: "flutter-ai-playground-452d7.firebasestorage.app",
+  messagingSenderId: "761849874992",
+  appId: "1:761849874992:web:7e4c1f553c07fca1e53bf5"
+};
+
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+const APP_ID = 'inspire-club-uec-prod'; 
+
+// --- DATA CONSTANTS ---
+
+const CLUB_INFO = {
+  name: "INSPIRE CLUB UEC",
+  tagline: "Culture. Education. Leadership.",
+  logo: "https://drive.google.com/file/d/1q7J6ZAX1yOaNQhBl1oonhlxXfpBQlwxj/view?usp=sharing", 
+  stats: [
+    { label: "Centers", value: "70+" },
+    { label: "Institutes", value: "100+" },
+    { label: "Members", value: "5000+" }
+  ]
+};
+
+const SEMESTERS = [1, 2, 3, 4, 5, 6, 7, 8];
+const BRANCHES_YR1 = ["Group A (CSE/ECE/EE)", "Group B (CM/CE/ME)"];
+const BRANCHES_SENIOR = ["CSE", "ECE", "EE", "ME", "CE", "CM"];
+
+const getBranchesForSemester = (sem) => {
+  return sem <= 2 ? BRANCHES_YR1 : BRANCHES_SENIOR;
+};
+
+// --- HELPER FUNCTIONS ---
+
+const getOptimizedImageUrl = (url) => {
+  if (!url) return '';
+  let fileId = null;
+  const fileMatch = url.match(/\/file\/d\/([a-zA-Z0-9_-]+)/);
+  if (fileMatch && fileMatch[1]) fileId = fileMatch[1];
+  
+  if (!fileId) {
+     const idMatch = url.match(/[?&]id=([a-zA-Z0-9_-]+)/);
+     if (idMatch && idMatch[1]) fileId = idMatch[1];
+  }
+
+  if (fileId) {
+    return `https://drive.google.com/thumbnail?id=${fileId}&sz=w1920`;
+  }
+  return url;
+};
+
+// --- SUB-COMPONENTS ---
+
+const ClubLogo = ({ className }) => (
+  <div className={`relative overflow-hidden rounded-full flex items-center justify-center bg-white shadow-sm border border-amber-200 ${className}`}>
+    <img 
+      src={getOptimizedImageUrl(CLUB_INFO.logo)} 
+      alt="Inspire Club Logo" 
+      className="w-full h-full object-cover"
+      onError={(e) => {
+        e.target.style.display = 'none';
+        e.target.parentElement.classList.add('bg-amber-500');
+        e.target.parentElement.innerHTML = '<span class="text-white font-bold text-xs">UEC</span>';
+      }}
+    />
+  </div>
+);
+
+const Navbar = ({ activeTab, setActiveTab, isAdmin, setShowLogin, mobileMenuOpen, setMobileMenuOpen, isDarkMode }) => (
+  <nav className={`${isDarkMode ? 'bg-slate-900 text-white border-slate-800' : 'bg-white/95 text-slate-800 border-amber-100'} backdrop-blur-sm sticky top-0 z-50 shadow-md border-b transition-colors duration-300`}>
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="flex items-center justify-between h-20">
+        <div className="flex items-center gap-4 cursor-pointer group" onClick={() => setActiveTab('home')}>
+          <ClubLogo className="h-12 w-12 group-hover:scale-105 transition-transform duration-300" />
+          <div className="flex flex-col">
+            <span className={`font-serif font-bold text-xl tracking-wide ${isDarkMode ? 'text-white' : 'text-slate-800'}`}>{CLUB_INFO.name}</span>
+            <span className="text-[11px] uppercase tracking-[0.25em] text-amber-600 font-bold mt-0.5">Ujjain</span>
+          </div>
+        </div>
+        
+        {/* Desktop Menu */}
+        <div className="hidden md:flex items-center space-x-2">
+          {['home', 'resources', 'events', 'gallery'].map((tab) => (
+            <button
+              key={tab}
+              onClick={() => setActiveTab(tab)}
+              className={`px-5 py-2 rounded-full text-sm font-bold transition-all duration-300 uppercase tracking-wider ${
+                activeTab === tab 
+                  ? 'bg-amber-600 text-white shadow-md transform scale-105' 
+                  : isDarkMode ? 'text-slate-300 hover:bg-slate-800 hover:text-amber-400' : 'text-slate-600 hover:bg-amber-50 hover:text-amber-700'
+              }`}
+            >
+              {tab}
+            </button>
+          ))}
+          
+          {isAdmin ? (
+             <button
+              onClick={() => setActiveTab('admin')}
+              className={`ml-4 flex items-center gap-2 px-4 py-2 rounded-full text-xs font-bold transition-colors border ${
+                activeTab === 'admin' 
+                  ? 'bg-red-600 text-white border-red-600 shadow-md' 
+                  : 'border-red-200 text-red-500 hover:bg-red-50'
+              }`}
+            >
+              <Lock className="h-3 w-3" /> Admin
+            </button>
+          ) : (
+            <button
+              onClick={() => setShowLogin(true)}
+              className={`ml-3 p-2 transition-colors rounded-full ${isDarkMode ? 'text-slate-400 hover:text-amber-400 hover:bg-slate-800' : 'text-slate-400 hover:text-amber-600 hover:bg-amber-50'}`}
+              title="Admin Login"
+            >
+              <UserCircle className="h-6 w-6" />
+            </button>
+          )}
+        </div>
+
+        {/* Mobile menu button */}
+        <div className="md:hidden">
+          <button
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            className={`inline-flex items-center justify-center p-2 rounded-md focus:outline-none ${isDarkMode ? 'text-slate-300 hover:text-white hover:bg-slate-800' : 'text-slate-600 hover:text-amber-700 hover:bg-amber-50'}`}
+          >
+            {mobileMenuOpen ? <X className="h-7 w-7" /> : <Menu className="h-7 w-7" />}
+          </button>
+        </div>
+      </div>
+    </div>
+
+    {/* Mobile Menu */}
+    {mobileMenuOpen && (
+      <div className={`md:hidden border-t shadow-xl absolute w-full ${isDarkMode ? 'bg-slate-900 border-slate-800' : 'bg-white border-amber-100'}`}>
+        <div className="px-4 pt-4 pb-6 space-y-2">
+          {['home', 'resources', 'events', 'gallery'].map((tab) => (
+            <button
+              key={tab}
+              onClick={() => { setActiveTab(tab); setMobileMenuOpen(false); }}
+              className={`block w-full text-left px-4 py-3 rounded-xl text-base font-bold uppercase tracking-wider transition-colors ${
+                isDarkMode ? 'text-slate-300 hover:bg-slate-800 hover:text-amber-400' : 'text-slate-700 hover:bg-amber-50 hover:text-amber-700'
+              }`}
+            >
+              {tab}
+            </button>
+          ))}
+          <button
+              onClick={() => { 
+                if(isAdmin) setActiveTab('admin');
+                else setShowLogin(true);
+                setMobileMenuOpen(false); 
+              }}
+              className="block w-full text-left px-4 py-3 rounded-xl text-base font-bold text-red-500 hover:bg-red-50 uppercase tracking-wider mt-4 border border-transparent hover:border-red-100"
+            >
+              {isAdmin ? "Admin Dashboard" : "Admin Login"}
+          </button>
+        </div>
+      </div>
+    )}
+  </nav>
+);
+
+// --- HERO SECTION WITH DYNAMIC THEME SUPPORT ---
+const HeroSection = ({ setActiveTab, isDarkMode, toggleTheme, themeData }) => {
+  // Default spiritual image if none set in admin
+  const defaultBg = "https://images.unsplash.com/photo-1544928147-79a2dbc1f389?ixlib=rb-1.2.1&auto=format&fit=crop&w=1950&q=80";
+  const bgImage = themeData?.heroImage ? getOptimizedImageUrl(themeData.heroImage) : defaultBg;
+
+  return (
+    <div className={`relative pt-20 pb-24 border-b transition-colors duration-500 ${isDarkMode ? 'bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900 border-slate-700' : 'bg-gradient-to-b from-sky-50 to-white border-amber-100'}`}>
+      
+      {/* Dynamic Background Image Layer */}
+      <div className="absolute inset-0 z-0 overflow-hidden">
+        <img 
+          src={bgImage} 
+          alt="Theme Background" 
+          className="w-full h-full object-cover opacity-20 scale-105 animate-pulse-slow"
+        />
+        {/* Gradient Overlay to ensure text readability */}
+        <div className={`absolute inset-0 bg-gradient-to-t ${isDarkMode ? 'from-slate-900 via-slate-900/90 to-transparent' : 'from-white via-white/80 to-transparent'}`} />
+      </div>
+
+      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+        
+        {/* Theme Toggle */}
+        <div className="mx-auto mb-8 flex justify-center">
+           <div 
+              onClick={toggleTheme}
+              className={`p-4 rounded-full shadow-lg border cursor-pointer transition-all hover:scale-110 ${isDarkMode ? 'bg-slate-800 border-slate-700 text-amber-300' : 'bg-white border-amber-100 text-amber-500'}`}
+              title="Toggle Theme"
+           >
+              {isDarkMode ? <Moon className="h-12 w-12 animate-pulse-slow" /> : <Sun className="h-12 w-12 animate-pulse-slow" />}
+           </div>
+        </div>
+
+        {/* Seasonal Greeting (If Active) */}
+        {themeData?.seasonalMsg && (
+          <div className="inline-block mb-6 animate-bounce">
+            <span className="px-6 py-2 rounded-full bg-gradient-to-r from-amber-500 to-red-500 text-white font-bold tracking-widest text-sm uppercase shadow-lg">
+              {themeData.seasonalMsg}
+            </span>
+          </div>
+        )}
+
+        <h1 className={`text-4xl md:text-6xl font-bold mb-6 font-serif tracking-tight leading-tight ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>
+          Engineering Excellence. <br/>
+          <span className="text-amber-600 italic">Spiritual Grounding.</span>
+        </h1>
+        
+        <p className={`text-lg md:text-xl mb-10 max-w-4xl mx-auto leading-relaxed ${isDarkMode ? 'text-slate-300' : 'text-slate-600'}`}>
+          The purpose of this club is to create a holistic platform that fosters both <span className="font-semibold text-indigo-500">technical excellence</span> and <span className="font-semibold text-indigo-500">spiritual well-being</span> among students.
+        </p>
+
+        <p className={`text-base mb-10 max-w-3xl mx-auto italic ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>
+          "By combining the power of technology with timeless spiritual values, we believe that developing inner clarity, focus, and ethical grounding is just as important as building technical knowledge in today’s competitive world."
+        </p>
+        
+        <div className="flex flex-col sm:flex-row gap-4 justify-center">
+          <button 
+            onClick={() => setActiveTab('resources')}
+            className="px-8 py-3 bg-indigo-700 text-white text-base font-bold rounded-full shadow-lg hover:bg-indigo-800 hover:-translate-y-1 transition-all flex items-center justify-center gap-2"
+          >
+            <BookOpen className="h-5 w-5" /> Study Materials
+          </button>
+          <button 
+            onClick={() => setActiveTab('events')}
+            className={`px-8 py-3 border-2 text-base font-bold rounded-full shadow-sm hover:-translate-y-1 transition-all flex items-center justify-center gap-2 ${isDarkMode ? 'bg-slate-800 text-amber-400 border-slate-700 hover:border-amber-500' : 'bg-white text-amber-700 border-amber-100 hover:border-amber-300 hover:bg-amber-50'}`}
+          >
+            <Calendar className="h-5 w-5" /> Upcoming Events
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// ... QuoteSection, ObjectivesSection, UniversityTicker ... (Keep same as previous)
+const QuoteSection = ({ quotes, isDarkMode }) => (
+  <div className={`py-16 border-t border-b ${isDarkMode ? 'bg-slate-900 border-slate-800' : 'bg-amber-50/30 border-amber-100'}`}>
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+      <div className="flex items-center justify-center gap-2 mb-8">
+        <Sparkles className="h-5 w-5 text-amber-500" />
+        <h2 className={`text-2xl font-bold font-serif ${isDarkMode ? 'text-white' : 'text-slate-800'}`}>
+          Wisdom Wall
+        </h2>
+        <Sparkles className="h-5 w-5 text-amber-500" />
+      </div>
+      
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {quotes && quotes.length > 0 ? quotes.map((q) => (
+          <div key={q.id} className={`p-8 rounded-xl border relative flex flex-col justify-center min-h-[200px] ${isDarkMode ? 'bg-slate-800 border-slate-700' : 'bg-white border-amber-100'} shadow-sm hover:shadow-md transition-all group`}>
+            <Quote className={`absolute top-4 left-4 h-8 w-8 ${isDarkMode ? 'text-slate-700' : 'text-amber-100'} group-hover:text-amber-200 transition-colors`} />
+            <p className={`text-lg font-medium italic mb-4 relative z-10 ${isDarkMode ? 'text-slate-200' : 'text-slate-700'}`}>"{q.text}"</p>
+            <p className={`text-xs font-bold uppercase tracking-wider ${isDarkMode ? 'text-amber-400' : 'text-indigo-600'}`}>— {q.author}</p>
+          </div>
+        )) : (
+          <div className="col-span-full text-center text-slate-500 italic py-10">
+            "Real education means to know the self." <br/><span className="text-xs font-bold mt-2 block">- Default Wisdom</span>
+          </div>
+        )}
+      </div>
+    </div>
+  </div>
+);
+
+const ObjectivesSection = ({ isDarkMode }) => {
+  const objectives = [
+    {
+      title: "Technical Development",
+      icon: <Cpu className="h-8 w-8 text-indigo-600" />,
+      color: isDarkMode ? "bg-slate-800 border-slate-700" : "bg-indigo-50 border-indigo-100",
+      points: [
+        "Organize workshops, coding events, & seminars",
+        "Promote innovation & peer-to-peer mentoring",
+        "Conduct study marathons for 1st-year students"
+      ]
+    },
+    {
+      title: "Spiritual Growth & Well-being",
+      icon: <Sun className="h-8 w-8 text-amber-600" />,
+      color: isDarkMode ? "bg-slate-800 border-slate-700" : "bg-amber-50 border-amber-100",
+      points: [
+        "Guided meditation sessions & value-based living",
+        "Host talks by spiritual thinkers & leaders",
+        "Celebrate India’s cultural & spiritual heritage"
+      ]
+    },
+    {
+      title: "Community & Leadership",
+      icon: <HeartHandshake className="h-8 w-8 text-emerald-600" />,
+      color: isDarkMode ? "bg-slate-800 border-slate-700" : "bg-emerald-50 border-emerald-100",
+      points: [
+        "Encourage volunteering & social responsibility",
+        "Promote collaboration among departments",
+        "Bridge academic gaps through mentorship"
+      ]
+    }
+  ];
+
+  return (
+    <div className={`py-20 transition-colors duration-300 ${isDarkMode ? 'bg-slate-900' : 'bg-white'}`}>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="text-center mb-16">
+          <h2 className={`text-3xl font-bold font-serif mb-4 ${isDarkMode ? 'text-white' : 'text-slate-800'}`}>Objectives of Inspire Club</h2>
+          <div className="h-1 w-20 bg-amber-500 mx-auto rounded-full"></div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          {objectives.map((obj, idx) => (
+            <div key={idx} className={`p-8 rounded-2xl border ${obj.color} hover:shadow-xl transition-all duration-300 group`}>
+              <div className={`w-16 h-16 rounded-full flex items-center justify-center shadow-sm mb-6 group-hover:scale-110 transition-transform duration-300 ${isDarkMode ? 'bg-slate-700' : 'bg-white'}`}>
+                {obj.icon}
+              </div>
+              <h3 className={`text-xl font-bold mb-4 ${isDarkMode ? 'text-slate-100' : 'text-slate-900'}`}>{obj.title}</h3>
+              <ul className="space-y-3">
+                {obj.points.map((point, i) => (
+                  <li key={i} className={`flex items-start gap-3 text-sm leading-relaxed ${isDarkMode ? 'text-slate-400' : 'text-slate-600'}`}>
+                    <div className={`mt-1.5 w-1.5 h-1.5 rounded-full flex-shrink-0 ${isDarkMode ? 'bg-slate-500' : 'bg-slate-400'}`} />
+                    {point}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const UniversityTicker = ({ isDarkMode }) => {
+  const institutes = [
+    { name: "IIT Bombay", icon: "https://upload.wikimedia.org/wikipedia/en/1/1d/Indian_Institute_of_Technology_Bombay_Logo.svg" },
+    { name: "IIT Delhi", icon: "https://upload.wikimedia.org/wikipedia/en/f/fd/Indian_Institute_of_Technology_Delhi_Logo.svg" },
+    { name: "IIT Madras", icon: "https://upload.wikimedia.org/wikipedia/en/6/69/IIT_Madras_Logo.svg" },
+    { name: "IIT Kharagpur", icon: "https://upload.wikimedia.org/wikipedia/en/1/1c/IIT_Kharagpur_Logo.svg" },
+    { name: "NIT Trichy", icon: "https://upload.wikimedia.org/wikipedia/en/4/48/NIT_Trichy_Logo.png" },
+    { name: "NIT Warangal", icon: "https://upload.wikimedia.org/wikipedia/en/9/98/NIT_Warangal_Logo.png" },
+    { name: "BITS Pilani", icon: "https://upload.wikimedia.org/wikipedia/en/d/d3/BITS_Pilani-Logo.svg" },
+    { name: "IIT Indore", icon: "https://upload.wikimedia.org/wikipedia/en/c/c4/IIT_Indore_logo.png" }
+  ];
+
+  return (
+    <div className={`py-16 border-t transition-colors duration-300 ${isDarkMode ? 'bg-slate-900 border-slate-800' : 'bg-slate-50 border-slate-100'}`}>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <p className={`text-center text-xs font-bold uppercase tracking-[0.2em] mb-10 ${isDarkMode ? 'text-slate-500' : 'text-slate-400'}`}>Mentored by Professionals from Top Institutes</p>
+        <div className="flex flex-wrap justify-center items-center gap-10 md:gap-16 grayscale hover:grayscale-0 transition-all duration-500">
+          {institutes.map((inst, i) => (
+            <img 
+              key={i} 
+              src={inst.icon} 
+              alt={inst.name} 
+              title={inst.name}
+              className={`h-12 w-auto object-contain hover:scale-110 transition-transform ${isDarkMode ? 'opacity-60 hover:opacity-100 brightness-150' : 'opacity-70 hover:opacity-100'}`} 
+              onError={(e) => e.target.style.display = 'none'}
+            />
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const HomeGalleryPreview = ({ galleryImages, isDarkMode }) => (
+  <div className={`py-16 border-t transition-colors duration-300 ${isDarkMode ? 'bg-slate-800 border-slate-700' : 'bg-white border-amber-50'}`}>
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="text-center mb-10">
+        <h2 className={`text-2xl font-bold font-serif mb-2 ${isDarkMode ? 'text-white' : 'text-slate-800'}`}>Gallery Highlights</h2>
+        <div className="h-1 w-16 bg-amber-500 mx-auto rounded-full"></div>
+      </div>
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        {galleryImages.slice(0, 4).map((img) => (
+           <div key={img.id} className="relative group overflow-hidden rounded-xl aspect-square shadow-md">
+             <img 
+               src={getOptimizedImageUrl(img.url)} 
+               alt="Gallery Preview" 
+               className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-500"
+               onError={(e) => {e.target.onerror = null; e.target.src="https://via.placeholder.com/400?text=Inspire+Club"}}
+             />
+             <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacit
 // --- FIREBASE IMPORTS ---
 import { initializeApp } from "firebase/app";
 import { getAuth, signInAnonymously, onAuthStateChanged } from "firebase/auth";
